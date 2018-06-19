@@ -14,7 +14,7 @@ documentation = "https://docs.rs/efm32gg-stk3700"
 
 [dependencies]
 cortex-m = "0.5.2"
-efm32gg990 = "0.1.2"
+efm32gg990 = { git = "https://github.com/maximeborges/svd2rust_efm32gg990" } # should become 0.1.2
 embedded-hal = { version = "0.2.1", features = ["unproven"] }
 
 efm32gg-hal = "0.1.0"
