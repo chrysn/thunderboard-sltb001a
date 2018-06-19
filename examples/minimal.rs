@@ -5,7 +5,7 @@
 
 #![no_main]
 #![no_std]
-#![feature(lang_items)]
+#![feature(panic_implementation)]
 
 #[macro_use(entry, exception)]
 extern crate cortex_m_rt as rt;
@@ -33,12 +33,12 @@ fn default_handler(irqn: i16) {
 }
 
 // For any non-minimal demo, and especially during development, you'll likely rather use this
-// crate and remove everything below here and the lang_items feature.
+// crate and remove everything below here and remove the panic_implementation feature at the top.
 //
 // extern crate panic_semihosting;
 
-#[lang="panic_fmt"]
-extern fn panic_fmt() -> ! {
+#[panic_implementation]
+fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 #[no_mangle]
