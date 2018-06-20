@@ -12,6 +12,9 @@ readme = "README.md"
 repository = "https://github.com/chrysn/efm32gg-stk3700"
 documentation = "https://docs.rs/efm32gg-stk3700"
 
+# explicit examples below are only for overriding dependencies
+autoexamples = true
+
 [dependencies]
 cortex-m = "0.5.2"
 efm32gg990 = { git = "https://github.com/maximeborges/svd2rust_efm32gg990" } # should become 0.1.2
@@ -19,15 +22,42 @@ embedded-hal = { version = "0.2.1", features = ["unproven"] }
 
 efm32gg-hal = "0.1.0"
 
-[dev-dependencies]
-# only for examples
+# not really for features, just for "depend-" features that allow the
+# dependency to be enabled for examples
 
-cortex-m-rt = "0.5.0"
-cortex-m-semihosting = "0.3.0"
-panic-semihosting = "0.3.0"
+panic-semihosting = { version = "0.3.0", optional = true }
+cortex-m-semihosting = { version = "0.3.0", optional = true }
+cortex-m-rtfm = { version = "0.3.1", optional = true }
+cortex-m-rt = { version = "0.5.0", optional = true }
 
+[features]
+
+depend-panic-semihosting = [ "panic-semihosting", "cortex-m-semihosting" ]
+depend-cortex-m-rt = [ "cortex-m-rt" ]
+depend-cortex-m-rtfm = [ "cortex-m-rtfm" ]
 
 [profile.release]
 lto = true
 codegen-units = 1
 opt-level = "z"
+
+
+[[example]]
+name = "minimal"
+
+required-features = ["depend-cortex-m-rt"]
+
+[[example]]
+name = "blink"
+
+required-features = ["depend-panic-semihosting", "depend-cortex-m-rt"]
+
+[[example]]
+name = "blink-rtfm"
+
+required-features = ["depend-panic-semihosting", "depend-cortex-m-rtfm"]
+
+[[example]]
+name = "lcd"
+
+required-features = ["depend-panic-semihosting", "depend-cortex-m-rt"]
