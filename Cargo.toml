@@ -1,23 +1,23 @@
 [package]
-name = "efm32gg-stk3700"
+name = "thunderboard-sltb001a"
 version = "0.1.0"
 authors = ["chrysn <chrysn@fsfe.org>"]
 
 categories = ["embedded", "no-std", "hardware-support"]
-description = "Board support crate for the EFM32GG-STK3700 Starter Kit"
-keywords = ["arm", "cortex-m", "efm32", "efm32gg"]
+description = "Board support crate for the Silicon Labs Thunderboard Sense"
+keywords = ["arm", "cortex-m", "efr32", "efr32mg"]
 license = "MIT OR Apache-2.0"
 
 readme = "README.md"
-repository = "https://github.com/chrysn/efm32gg-stk3700"
-documentation = "https://docs.rs/efm32gg-stk3700"
+repository = "https://github.com/chrysn/thunderboard-sltb001a"
+documentation = "https://docs.rs/thunderboard-sltb001a"
 
 # explicit examples below are only for overriding dependencies
 autoexamples = true
 
 [dependencies]
 cortex-m = "0.5.2"
-efm32gg990 = { git = "https://github.com/maximeborges/svd2rust_efm32gg990" } # should become 0.1.2
+efr32xg12p = "0.1.0" # actually efr32xg1p, but for first experiments the differences shouldn't affect anything
 embedded-hal = { version = "0.2.1", features = ["unproven"] }
 
 efm32gg-hal = "0.1.0"
@@ -27,14 +27,12 @@ efm32gg-hal = "0.1.0"
 
 panic-semihosting = { version = "0.3.0", optional = true }
 cortex-m-semihosting = { version = "0.3.0", optional = true }
-cortex-m-rtfm = { version = "0.3.1", optional = true }
 cortex-m-rt = { version = "0.5.0", optional = true }
 
 [features]
 
 depend-panic-semihosting = [ "panic-semihosting", "cortex-m-semihosting" ]
 depend-cortex-m-rt = [ "cortex-m-rt" ]
-depend-cortex-m-rtfm = [ "cortex-m-rtfm" ]
 
 [profile.release]
 lto = true
@@ -49,15 +47,5 @@ required-features = ["depend-cortex-m-rt"]
 
 [[example]]
 name = "blink"
-
-required-features = ["depend-panic-semihosting", "depend-cortex-m-rt"]
-
-[[example]]
-name = "blink-rtfm"
-
-required-features = ["depend-panic-semihosting", "depend-cortex-m-rtfm"]
-
-[[example]]
-name = "lcd"
 
 required-features = ["depend-panic-semihosting", "depend-cortex-m-rt"]
