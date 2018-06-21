@@ -17,10 +17,10 @@ autoexamples = true
 
 [dependencies]
 cortex-m = "0.5.2"
-efr32xg12p = "0.1.0" # actually efr32xg1p, but for first experiments the differences shouldn't affect anything
+efr32xg1 = { path = "../svd2rust-crates/efr32xg1" }
 embedded-hal = { version = "0.2.1", features = ["unproven"] }
 
-efm32gg-hal = "0.1.0"
+efm32gg-hal = { path = "../efm32gg-hal" }
 
 # not really for features, just for "depend-" features that allow the
 # dependency to be enabled for examples

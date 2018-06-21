@@ -13,7 +13,7 @@
 #[macro_use(entry, exception)]
 extern crate cortex_m_rt as rt;
 
-extern crate efm32gg_stk3700;
+extern crate thunderboard_sltb001a;
 
 extern crate embedded_hal;
 
@@ -25,7 +25,7 @@ use embedded_hal::blocking::delay::DelayMs;
 entry!(main);
 
 fn main() -> ! {
-    let board = efm32gg_stk3700::Board::new();
+    let board = thunderboard_sltb001a::Board::new();
     let mut leds = board.leds;
     let buttons = board.buttons;
     let mut delay = board.delay;

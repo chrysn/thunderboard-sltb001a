@@ -4,13 +4,13 @@ use efm32gg_hal::gpio::EFM32Pin;
 
 /// A representation of the two user LEDs on the STK3700
 pub struct LEDs {
-    led0: gpio::pins::PE2<gpio::Output>,
-    led1: gpio::pins::PE3<gpio::Output>,
+    led0: gpio::pins::PD11<gpio::Output>,
+    led1: gpio::pins::PD12<gpio::Output>,
 }
 
 impl LEDs {
-    pub fn new(pe2: gpio::pins::PE2<gpio::Disabled>, pe3: gpio::pins::PE3<gpio::Disabled>) -> Self {
-        LEDs { led0: pe2.as_output(), led1: pe3.as_output() }
+    pub fn new(pd11: gpio::pins::PD11<gpio::Disabled>, pd12: gpio::pins::PD12<gpio::Disabled>) -> Self {
+        LEDs { led0: pd11.as_output(), led1: pd12.as_output() }
     }
 
     pub fn led0_on(&mut self)
