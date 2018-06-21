@@ -3,6 +3,10 @@
 
 This is a board support crate for the [Silicon Labs Thunderboard Sense] "inspiration kit".
 
+The part designation is a bit odd; while there is now a revision B to the
+board, it is not referred to as "sltb001b" on the vendor page, and rarely as
+"sltb001".
+
 ### [Documentation](https://docs.rs/thunderboard-sltb001a)
 
 Documentation is automatically built at <https://docs.rs/thunderboard-sltb001a>
