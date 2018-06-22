@@ -45,6 +45,7 @@ extern crate efr32xg1;
 
 pub mod led;
 pub mod button;
+pub mod pic;
 
 use efm32gg_hal::{
     gpio::GPIOExt,
@@ -60,6 +61,7 @@ pub struct Board {
     pub leds: led::LEDs,
     pub buttons: button::Buttons,
     pub delay: efm32gg_hal::systick::SystickDelay,
+    pub pic: pic::PIC,
 }
 
 impl Board {
@@ -78,24 +80,25 @@ impl Board {
         let corep = cortex_m::peripheral::Peripherals::take().unwrap();
         let p = efr32xg1::Peripherals::take().unwrap();
 
-        let mut cmu = p.CMU;
+        let cmu = p.CMU.constrain().split();
 
-        let gpios = p.GPIO.split(&mut cmu);
+        let gpios = p.GPIO.split(cmu.gpio);
 
         let leds = led::LEDs::new(gpios.pd11, gpios.pd12);
 
         let buttons = button::Buttons::new(gpios.pd14, gpios.pd15);
 
-        let cmu = cmu.constrain();
-        let hfcoreclk = cmu.split().hfcoreclk;
+        let hfcoreclk = cmu.hfcoreclk;
         let syst = corep.SYST.constrain();
+        let mut delay = efm32gg_hal::systick::SystickDelay::new(syst, hfcoreclk);
 
-        let delay = efm32gg_hal::systick::SystickDelay::new(syst, hfcoreclk);
+        let pic = pic::PIC::new(p.I2C0, &mut delay, cmu.i2c0, gpios.pd10, gpios.pc11, gpios.pc10);
 
         Board {
             leds: leds,
             buttons: buttons,
             delay: delay,
+            pic: pic,
         }
     }
 }
