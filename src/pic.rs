@@ -35,7 +35,6 @@ impl/*<D>*/ PIC/*<D>*/
 
         // interesting fhow contrary to what the documentation says, it is *not* sufficient to just
         // send a pulse and i2c right away (i can't be too slow, can i?)
-        delay.delay_us(50u16);
         pic_int_wake.set_high();
 
         PIC { i2c: pic_i2c }
