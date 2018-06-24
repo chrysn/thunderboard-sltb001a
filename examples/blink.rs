@@ -29,6 +29,9 @@ fn main() -> ! {
     let mut leds = board.leds;
     let buttons = board.buttons;
     let mut delay = board.delay;
+    let mut pic = board.pic;
+
+    let mut count = 1;
 
     loop {
         if buttons.button1_pressed() {
@@ -43,6 +46,9 @@ fn main() -> ! {
         }
         delay.delay_ms(500u16);
         leds.led1_off();
+
+        count = (count + 1) % 4;
+        pic.set_leds(count == 0, count == 1, count == 2, count == 3);
     }
 }
 

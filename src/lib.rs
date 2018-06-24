@@ -57,14 +57,17 @@ use efm32gg_hal::{
 ///
 /// While all its parts can be easily constructed on their own, instanciating the full board takes
 /// care of obtaining the low-level peripherals and moving the right pins to the right devices.
-pub struct Board {
+pub struct Board<D1, D2>
+    where D1: embedded_hal::blocking::delay::DelayMs<u16>,
+          D2: embedded_hal::blocking::delay::DelayUs<u16>,
+{
     pub leds: led::LEDs,
     pub buttons: button::Buttons,
-    pub delay: efm32gg_hal::systick::SystickDelay,
-    pub pic: pic::PIC,
+    pub delay: D1,
+    pub pic: pic::PIC<D2>,
 }
 
-impl Board {
+impl Board<VeryBadDelay, efm32gg_hal::systick::SystickDelay> {
     /// Initialize the board
     ///
     /// This does little configuration, but primarily ``take``s the system and EFM32 peripherals and
@@ -90,15 +93,47 @@ impl Board {
 
         let hfcoreclk = cmu.hfcoreclk;
         let syst = corep.SYST.constrain();
-        let mut delay = efm32gg_hal::systick::SystickDelay::new(syst, hfcoreclk);
+        let delay = efm32gg_hal::systick::SystickDelay::new(syst, hfcoreclk);
 
-        let pic = pic::PIC::new(p.I2C0, &mut delay, cmu.i2c0, gpios.pd10, gpios.pc11, gpios.pc10);
+        // At board initialization, it makes sense to clear the LEDs because the EFM8 is not reset
+        // along with the EFR32. (Would make sense to clear everything else too once enabled, or to
+        // find a SYS_CMD that resets the chip as a whole, see
+        // <https://www.silabs.com/community/thunderboard/forum.topic.html/thunderboard_reset-6Agl>).
+        let mut pic = pic::PIC::new(p.I2C0, delay, cmu.i2c0, gpios.pd10, gpios.pc11, gpios.pc10);
+        pic.set_leds(false, false, false, false);
+        let id = pic.read_device_id();
+        assert!(&id == &[0x49, 0x4f, 0x58, 0x50], "PIC device ID unexpected");
+
+        // If we wanted to pass out the good delay, we could do this and not pass out the PIC.
+        // let (i2c, delay) = pic.destroy();
 
         Board {
             leds: leds,
             buttons: buttons,
-            delay: delay,
+            delay: VeryBadDelay { },
             pic: pic,
+        }
+    }
+}
+
+use embedded_hal::blocking::delay::{DelayUs, DelayMs};
+pub struct VeryBadDelay {
+}
+
+impl DelayUs<u16> for VeryBadDelay {
+    // This is only accurate to an order of magnitude, and only in release builds and for
+    // unmodified clock settings...
+    fn delay_us(&mut self, us: u16) {
+        for _i in 1..us/10 {
+            cortex_m::asm::nop();
+        }
+    }
+}
+
+impl DelayMs<u16> for VeryBadDelay {
+    fn delay_ms(&mut self, ms: u16) {
+        for _i in 1..ms {
+            self.delay_us(1000)
         }
     }
 }

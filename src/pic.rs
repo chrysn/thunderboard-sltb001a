@@ -5,42 +5,77 @@
 
 use embedded_hal::blocking::delay::DelayUs;
 use efr32xg1 as registers;
-use efm32gg_hal::i2c::{I2CExt, ConfiguredI2C0};
+use efm32gg_hal::i2c::ConfiguredI2C0;
 use efm32gg_hal::cmu::I2C0Clk;
-use efm32gg_hal::gpio::Disabled;
+use efm32gg_hal::gpio::{Disabled, Output};
 use efm32gg_hal::gpio::pins::{PD10, PC11, PC10};
 
-pub struct PIC/*<D>*/
-    /*where D: DelayUs<u16>*/
+use embedded_hal::digital::OutputPin;
+use embedded_hal::blocking::i2c::{Write, Read};
+
+pub struct PIC<D>
 {
     i2c: ConfiguredI2C0,
-//     delay: D // that's gonna be an issue with requiring mut on a delay
+    delay: D,
+    int_wake: PD10<Output>,
 }
 
-impl/*<D>*/ PIC/*<D>*/
-    /*where D: DelayUs<u16>*/
+impl<D> PIC<D>
+    where D: DelayUs<u16>
 {
-    pub fn new(register: registers::I2C0, delay: &mut DelayUs<u16>, clk: I2C0Clk, pd10: PD10<Disabled>, pc11: PC11<Disabled>, pc10: PC10<Disabled>) -> Self
+    pub fn new(register: registers::I2C0, delay: D, clk: I2C0Clk, pd10: PD10<Disabled>, pc11: PC11<Disabled>, pc10: PC10<Disabled>) -> Self
     {
         use efm32gg_hal::gpio::EFM32Pin;
-        use embedded_hal::digital::OutputPin;
-        let mut pic_int_wake = pd10.as_opendrain();
-        pic_int_wake.set_low();
-        delay.delay_us(5u16);
-
         use efm32gg_hal::i2c::I2CExt;
-        let mut pic_i2c = register.with_clock(clk).with_scl(registers::i2c0::routeloc0::SCLLOCW::LOC15, pc11).unwrap().with_sda(registers::i2c0::routeloc0::SDALOCW::LOC15, pc10).unwrap();
-        use embedded_hal::blocking::i2c::Write;
-        pic_i2c.write(0x90, &[0x04, 0x81]).unwrap(); // Switch RGB LED 1 on
+
+        let i2c = register.with_clock(clk).with_scl(registers::i2c0::routeloc0::SCLLOCW::LOC15, pc11).unwrap().with_sda(registers::i2c0::routeloc0::SDALOCW::LOC15, pc10).unwrap();
+
+        let mut int_wake = pd10.as_opendrain();
+        int_wake.set_high();
+
+        PIC { i2c: i2c, delay: delay, int_wake: int_wake }
+    }
+
+    fn acquiring<T>(&mut self, inner: impl FnOnce(&mut ConfiguredI2C0) -> T) -> T
+    {
+        self.int_wake.set_low();
+        self.delay.delay_us(5u16);
+
+        let result = inner(&mut self.i2c);
 
         // interesting fhow contrary to what the documentation says, it is *not* sufficient to just
         // send a pulse and i2c right away (i can't be too slow, can i?)
-        pic_int_wake.set_high();
+        self.int_wake.set_high();
 
-        PIC { i2c: pic_i2c }
+        result
     }
 
     pub fn set_leds(&mut self, led0: bool, led1: bool, led2: bool, led3: bool)
     {
+        self.acquiring(|i2c| {
+            let led_config: u8 = ((led0 as u8) << 7) |
+                                 ((led1 as u8) << 6) |
+                                 ((led2 as u8) << 5) |
+                                 ((led3 as u8) << 4) |
+                                 ((led0 || led1 || led2 || led3) as u8);
+            i2c.write(0x90, &[0x04, led_config]).unwrap();
+        })
+    }
+
+    pub fn read_device_id(&mut self) -> [u8; 4]
+    {
+        self.acquiring(|i2c| {
+            let mut result = [0xff; 4];
+            for i in 0..4 {
+                i2c.write(0x90, &[0xf8 + i]).unwrap();
+                i2c.read(0x90, &mut result[(i as usize)..((i+1) as usize)]).unwrap();
+            }
+            result
+        })
+    }
+
+    pub fn destroy(self) -> (ConfiguredI2C0, D)
+    {
+        (self.i2c, self.delay)
     }
 }
