@@ -20,6 +20,8 @@ pub struct PIC<D>
     int_wake: PD10<Output>,
 }
 
+const ADDR: u8 = 0x48;
+
 impl<D> PIC<D>
     where D: DelayUs<u16>
 {
@@ -58,7 +60,7 @@ impl<D> PIC<D>
                                  ((led2 as u8) << 5) |
                                  ((led3 as u8) << 4) |
                                  ((led0 || led1 || led2 || led3) as u8);
-            i2c.write(0x90, &[0x04, led_config]).unwrap();
+            i2c.write(ADDR, &[0x04, led_config]).unwrap();
         })
     }
 
@@ -67,8 +69,8 @@ impl<D> PIC<D>
         self.acquiring(|i2c| {
             let mut result = [0xff; 4];
             for i in 0..4 {
-                i2c.write(0x90, &[0xf8 + i]).unwrap();
-                i2c.read(0x90, &mut result[(i as usize)..((i+1) as usize)]).unwrap();
+                i2c.write(ADDR, &[0xf8 + i]).unwrap();
+                i2c.read(ADDR, &mut result[(i as usize)..((i+1) as usize)]).unwrap();
             }
             result
         })
