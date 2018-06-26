@@ -37,6 +37,7 @@
 
 #![no_std]
 
+#[macro_use(singleton)]
 extern crate cortex_m;
 extern crate embedded_hal;
 extern crate efm32gg_hal;
@@ -47,10 +48,12 @@ pub mod led;
 pub mod button;
 pub mod pic;
 
+use core::cell::RefCell;
+
 use efm32gg_hal::{
     gpio::GPIOExt,
     cmu::CMUExt,
-    systick::SystickExt,
+    systick::{SystickExt, SystickDelay},
 };
 
 /// A representation of all the board's peripherals.
@@ -67,7 +70,7 @@ pub struct Board<D1, D2>
     pub pic: pic::PIC<D2>,
 }
 
-impl Board<VeryBadDelay, efm32gg_hal::systick::SystickDelay> {
+impl Board<RefCellDelay, RefCellDelay> {
     /// Initialize the board
     ///
     /// This does little configuration, but primarily ``take``s the system and EFM32 peripherals and
@@ -93,47 +96,57 @@ impl Board<VeryBadDelay, efm32gg_hal::systick::SystickDelay> {
 
         let hfcoreclk = cmu.hfcoreclk;
         let syst = corep.SYST.constrain();
-        let delay = efm32gg_hal::systick::SystickDelay::new(syst, hfcoreclk);
+        // I'd prefer to have the delay mutex just live in the board struct and then deal
+        // references out (won't work for lifetime reasons).
+        let delay = &*singleton!(: RefCell<SystickDelay> = RefCell::new(SystickDelay::new(syst, hfcoreclk))).unwrap();
 
         // At board initialization, it makes sense to clear the LEDs because the EFM8 is not reset
         // along with the EFR32. (Would make sense to clear everything else too once enabled, or to
         // find a SYS_CMD that resets the chip as a whole, see
         // <https://www.silabs.com/community/thunderboard/forum.topic.html/thunderboard_reset-6Agl>).
-        let mut pic = pic::PIC::new(p.I2C0, delay, cmu.i2c0, gpios.pd10, gpios.pc11, gpios.pc10);
+        let mut pic = pic::PIC::new(p.I2C0, RefCellDelay::new(delay), cmu.i2c0, gpios.pd10, gpios.pc11, gpios.pc10);
         pic.set_leds(false, false, false, false);
         let id = pic.read_device_id();
         assert!(&id == &[0x49, 0x4f, 0x58, 0x50], "PIC device ID unexpected");
 
-        // If we wanted to pass out the good delay, we could do this and not pass out the PIC.
-        // let (i2c, delay) = pic.destroy();
-
         Board {
             leds: leds,
             buttons: buttons,
-            delay: VeryBadDelay { },
+            delay: RefCellDelay::new(delay),
             pic: pic,
         }
     }
 }
 
-use embedded_hal::blocking::delay::{DelayUs, DelayMs};
-pub struct VeryBadDelay {
+
+
+
+// Needs its own type wrappe for two reasons:
+// a) I can only implement traits for own types here.
+// b) the delay functions need a mutable reference.
+pub struct RefCellDelay {
+    cell: &'static RefCell<SystickDelay>,
 }
 
-impl DelayUs<u16> for VeryBadDelay {
-    // This is only accurate to an order of magnitude, and only in release builds and for
-    // unmodified clock settings...
-    fn delay_us(&mut self, us: u16) {
-        for _i in 1..us/10 {
-            cortex_m::asm::nop();
-        }
+impl RefCellDelay {
+    pub fn new(delay: &'static RefCell<SystickDelay>) -> Self
+    {
+        Self { cell: delay }
     }
 }
 
-impl DelayMs<u16> for VeryBadDelay {
-    fn delay_ms(&mut self, ms: u16) {
-        for _i in 1..ms {
-            self.delay_us(1000)
-        }
+impl embedded_hal::blocking::delay::DelayUs<u16> for RefCellDelay
+{
+    fn delay_us(&mut self, us: u16)
+    {
+        self.cell.borrow_mut().delay_us(us)
+    }
+}
+
+impl embedded_hal::blocking::delay::DelayMs<u16> for RefCellDelay
+{
+    fn delay_ms(&mut self, ms: u16)
+    {
+        self.cell.borrow_mut().delay_ms(ms)
     }
 }
