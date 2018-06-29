@@ -49,3 +49,8 @@ required-features = ["depend-cortex-m-rt"]
 name = "blink"
 
 required-features = ["depend-panic-semihosting", "depend-cortex-m-rt"]
+
+[[example]]
+name = "i2c"
+
+required-features = ["depend-panic-semihosting", "depend-cortex-m-rt"]
