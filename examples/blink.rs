@@ -10,16 +10,9 @@
 #![no_main]
 #![no_std]
 
-#[macro_use(entry, exception)]
-extern crate cortex_m_rt as rt;
-
-extern crate thunderboard_sltb001a;
-
-extern crate embedded_hal;
-
 extern crate panic_semihosting;
 
-use rt::ExceptionFrame;
+use cortex_m_rt::{ExceptionFrame, entry, exception};
 use embedded_hal::blocking::delay::DelayMs;
 
 #[entry]

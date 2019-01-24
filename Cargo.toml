@@ -3,6 +3,8 @@ name = "thunderboard-sltb001a"
 version = "0.1.0"
 authors = ["chrysn <chrysn@fsfe.org>"]
 
+edition = "2018"
+
 categories = ["embedded", "no-std", "hardware-support"]
 description = "Board support crate for the Silicon Labs Thunderboard Sense"
 keywords = ["arm", "cortex-m", "efr32", "efr32mg"]

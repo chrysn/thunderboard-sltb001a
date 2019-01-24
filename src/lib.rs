@@ -37,12 +37,7 @@
 
 #![no_std]
 
-#[macro_use(singleton)]
-extern crate cortex_m;
-extern crate embedded_hal;
-extern crate efm32gg_hal;
-
-extern crate efr32xg1;
+use cortex_m::singleton;
 
 #[cfg(not(feature = "led-pwm"))]
 pub mod led;
