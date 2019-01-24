@@ -43,12 +43,6 @@ lto = true
 codegen-units = 1
 opt-level = "z"
 
-
-[[example]]
-name = "minimal"
-
-required-features = ["depend-cortex-m-rt"]
-
 [[example]]
 name = "blink"
 
