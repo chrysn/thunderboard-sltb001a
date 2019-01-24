@@ -8,7 +8,7 @@
 //!
 //! Thus, the larger value is in providing runnable examples. With an STK connected via USB and an
 //! [OpenOCD] running (typically ``openocd -f board/efm32.cfg``), a blinking example can be run as
-//! ``cargo run --release --example blink --features="depend-panic-semihosting depend-cortex-m-rt"``.
+//! ``cargo run --example blink --features="depend-panic-semihosting depend-cortex-m-rt"``.
 //!
 //! (The features the example needs are actually additional dependencies and are shown in the error
 //! message when invoking an example without features).
