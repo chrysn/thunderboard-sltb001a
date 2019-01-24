@@ -22,8 +22,7 @@ extern crate panic_semihosting;
 use rt::ExceptionFrame;
 use embedded_hal::blocking::delay::DelayMs;
 
-entry!(main);
-
+#[entry]
 fn main() -> ! {
     let board = thunderboard_sltb001a::Board::new();
     let mut leds = board.leds;
@@ -52,16 +51,12 @@ fn main() -> ! {
     }
 }
 
-// define the hard fault handler
-exception!(HardFault, hard_fault);
-
-fn hard_fault(ef: &ExceptionFrame) -> ! {
+#[exception]
+fn HardFault(ef: &ExceptionFrame) -> ! {
     panic!("HardFault at {:#?}", ef);
 }
 
-// define the default exception handler
-exception!(*, default_handler);
-
-fn default_handler(irqn: i16) {
+#[exception]
+fn DefaultHandler(irqn: i16) {
     panic!("Unhandled exception (IRQn = {})", irqn);
 }
