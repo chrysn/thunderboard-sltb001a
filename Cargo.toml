@@ -22,7 +22,7 @@ cortex-m = "0.5.2"
 efr32xg1 = "0.2.0"
 embedded-hal = { version = "0.2.1", features = ["unproven"] }
 
-efm32gg-hal = { version = "0.2.0", features = [ "chip-efr32xg1" ] }
+efm32gg-hal = { version = "0.3.0", features = [ "chip-efr32xg1" ] }
 
 # not really for features, just for "depend-" features that allow the
 # dependency to be enabled for examples
