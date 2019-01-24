@@ -4,15 +4,13 @@
 //! The example runs in a tight loop and only occasionally reads out the buttons (rather than
 //! sleeping, using interrupts and timers, as one would preferably do to be responsive and
 //! efficient), but that's what the current HAL implementation can give.
-//!
-//! Everything outside of main is taken from the cortex-m-quickstart examples.
 
 #![no_main]
 #![no_std]
 
 extern crate panic_semihosting;
 
-use cortex_m_rt::{ExceptionFrame, entry, exception};
+use cortex_m_rt::entry;
 use embedded_hal::blocking::delay::DelayMs;
 
 #[entry]
@@ -42,14 +40,4 @@ fn main() -> ! {
         count = (count + 1) % 4;
         pic.set_leds(count == 0, count == 1, count == 2, count == 3);
     }
-}
-
-#[exception]
-fn HardFault(ef: &ExceptionFrame) -> ! {
-    panic!("HardFault at {:#?}", ef);
-}
-
-#[exception]
-fn DefaultHandler(irqn: i16) {
-    panic!("Unhandled exception (IRQn = {})", irqn);
 }

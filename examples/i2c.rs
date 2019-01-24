@@ -4,31 +4,19 @@
 //! between multiple users: It is taken from the PIC abstraction's cold dead hands.
 //!
 //! The example prints to semihosted stdout (watch your OpenOCD console), and then ends in a loop.
-//!
-//! Everything outside of main is taken from the cortex-m-quickstart examples.
 
 #![no_main]
 #![no_std]
 
-#[macro_use(entry, exception)]
-extern crate cortex_m_rt as rt;
-
-extern crate thunderboard_sltb001a;
-
-extern crate embedded_hal;
-
 extern crate panic_semihosting;
 
-extern crate efm32gg_hal;
-extern crate cortex_m_semihosting;
+use cortex_m_rt::entry;
+
 use efm32gg_hal::i2c::{ConfiguredI2C0, Error::AddressNack};
 use cortex_m_semihosting::hio;
 use core::fmt::Write;
 
-use rt::ExceptionFrame;
-
-entry!(main);
-
+#[entry]
 fn main() -> ! {
     let board = thunderboard_sltb001a::Board::new();
     let mut pic = board.pic;
@@ -65,18 +53,4 @@ fn main() -> ! {
 
 
     loop { }
-}
-
-// define the hard fault handler
-exception!(HardFault, hard_fault);
-
-fn hard_fault(ef: &ExceptionFrame) -> ! {
-    panic!("HardFault at {:#?}", ef);
-}
-
-// define the default exception handler
-exception!(*, default_handler);
-
-fn default_handler(irqn: i16) {
-    panic!("Unhandled exception (IRQn = {})", irqn);
 }
