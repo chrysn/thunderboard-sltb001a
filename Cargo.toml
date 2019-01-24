@@ -34,6 +34,8 @@ cortex-m-rt = { version = "0.6.7", optional = true }
 depend-panic-semihosting = [ "panic-semihosting", "cortex-m-semihosting" ]
 depend-cortex-m-rt = [ "cortex-m-rt" ]
 
+led-pwm = []
+
 [profile.release]
 lto = true
 codegen-units = 1

@@ -44,7 +44,10 @@ extern crate efm32gg_hal;
 
 extern crate efr32xg1;
 
+#[cfg(not(feature = "led-pwm"))]
 pub mod led;
+#[cfg(feature = "led-pwm")]
+pub mod led_pwm;
 pub mod button;
 pub mod pic;
 
@@ -54,6 +57,7 @@ use efm32gg_hal::{
     gpio::GPIOExt,
     cmu::CMUExt,
     systick::{SystickExt, SystickDelay},
+    timer::TimerExt,
 };
 
 /// A representation of all the board's peripherals.
@@ -64,7 +68,10 @@ pub struct Board<D1, D2>
     where D1: embedded_hal::blocking::delay::DelayMs<u16>,
           D2: embedded_hal::blocking::delay::DelayUs<u16>,
 {
+    #[cfg(not(feature = "led-pwm"))]
     pub leds: led::LEDs,
+    #[cfg(feature = "led-pwm")]
+    pub leds: led_pwm::LEDs,
     pub buttons: button::Buttons,
     pub delay: D1,
     pub pic: pic::PIC<D2>,
@@ -90,6 +97,9 @@ impl Board<RefCellDelay, RefCellDelay> {
 
         let gpios = p.GPIO.split(cmu.gpio);
 
+        #[cfg(feature = "led-pwm")]
+        let leds = led_pwm::LEDs::new(gpios.pd11, gpios.pd12, p.TIMER0.with_clock(cmu.timer0));
+        #[cfg(not(feature = "led-pwm"))]
         let leds = led::LEDs::new(gpios.pd11, gpios.pd12);
 
         let buttons = button::Buttons::new(gpios.pd14, gpios.pd15);
