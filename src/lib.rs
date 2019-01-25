@@ -59,6 +59,9 @@ use efm32gg_hal::{
 ///
 /// While all its parts can be easily constructed on their own, instanciating the full board takes
 /// care of obtaining the low-level peripherals and moving the right pins to the right devices.
+///
+/// This struct is expected to grow, so don't destructure it but just pick its parts. (The author
+/// is aware that this is nothing that can be stable in a Rust sense).
 pub struct Board<D1, D2>
     where D1: embedded_hal::blocking::delay::DelayMs<u16>,
           D2: embedded_hal::blocking::delay::DelayUs<u16>,
@@ -70,6 +73,18 @@ pub struct Board<D1, D2>
     pub buttons: button::Buttons,
     pub delay: D1,
     pub pic: pic::PIC<D2>,
+
+    // Assorted peripherals not used by the various abstractions
+
+    // From the Cortex-M part
+    pub nvic: cortex_m::peripheral::NVIC,
+
+    // Part from the EFM HAL, ready with their clock enabled
+    // (Still considering handing them out uninitialized, but then all their CMU parts would need
+    // to go out as well)
+    pub timer1: efm32gg_hal::timer::Timer1,
+
+    // GPIO pins. (None needed yet; in the end, this should include all the connectors).
 }
 
 impl Board<RefCellDelay, RefCellDelay> {
@@ -114,11 +129,17 @@ impl Board<RefCellDelay, RefCellDelay> {
         let id = pic.read_device_id();
         assert!(&id == &[0x49, 0x4f, 0x58, 0x50], "PIC device ID unexpected");
 
+        let timer1 = p.TIMER1.with_clock(cmu.timer1);
+
         Board {
             leds: leds,
             buttons: buttons,
             delay: RefCellDelay::new(delay),
             pic: pic,
+
+            nvic: corep.NVIC,
+
+            timer1: timer1,
         }
     }
 }
