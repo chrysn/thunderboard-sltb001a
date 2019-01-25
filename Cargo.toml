@@ -30,11 +30,13 @@ efm32gg-hal = { version = "0.3.0", features = [ "chip-efr32xg1" ] }
 panic-semihosting = { version = "0.5.1", optional = true }
 cortex-m-semihosting = { version = "0.3.2", optional = true }
 cortex-m-rt = { version = "0.6.7", optional = true }
+heapless = { version = "0.4.1", optional = true }
 
 [features]
 
 depend-panic-semihosting = [ "panic-semihosting", "cortex-m-semihosting" ]
 depend-cortex-m-rt = [ "cortex-m-rt" ]
+depend-interrupts = [ "efr32xg1/rt" ]
 
 led-pwm = []
 
@@ -52,3 +54,8 @@ required-features = ["depend-panic-semihosting", "depend-cortex-m-rt"]
 name = "i2c"
 
 required-features = ["depend-panic-semihosting", "depend-cortex-m-rt"]
+
+[[example]]
+name = "interrupt_blink"
+
+required-features = ["depend-panic-semihosting", "depend-cortex-m-rt", "depend-interrupts", "heapless/const-fn"]
